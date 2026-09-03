@@ -22,7 +22,7 @@ const Env = z.object({
   WHATSAPP_APP_SECRET: z.string().optional(),
   WHATSAPP_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
-  GRAPH_API_VERSION: z.string().default("v21.0"),
+  GRAPH_API_VERSION: z.string().default("v26.0"),
   AGENT_TOKEN: z.string().optional(),
 });
 

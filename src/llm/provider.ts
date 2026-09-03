@@ -1,4 +1,5 @@
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { ChatDeepSeek } from "@langchain/deepseek";
 import { config, type Provider } from "../settings/config.js";
 
 async function load<T>(pkg: string, provider: string): Promise<T> {
@@ -14,7 +15,6 @@ export async function makeModel(provider: Provider = config.llm.provider): Promi
   switch (provider) {
     case "deepseek": {
       if (!apiKeys.deepseek) throw new Error("Missing DEEPSEEK_API_KEY. Set it in .env before starting.");
-      const { ChatDeepSeek } = await load<typeof import("@langchain/deepseek")>("@langchain/deepseek", provider);
       return new ChatDeepSeek({ apiKey: apiKeys.deepseek, model: models.deepseek });
     }
     case "openai": {

@@ -7,7 +7,13 @@ import type { Conversion } from "./state.js";
 import type { OutMessage } from "./messages.js";
 
 registerProductTools();
-void warmCollections();
+
+let warmed = false;
+function ensureWarm(): void {
+  if (warmed) return;
+  warmed = true;
+  void warmCollections();
+}
 
 let appPromise: ReturnType<typeof compileApp> | null = null;
 async function compileApp() {
@@ -23,6 +29,7 @@ export async function invoke(
   input: string,
   threadId?: string,
 ): Promise<{ messages: OutMessage[]; conversion: Conversion; iterations: number }> {
+  ensureWarm();
   const app = await getApp();
   const out = await app.invoke(
     { input },

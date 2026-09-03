@@ -7,9 +7,6 @@ compatibility_flags = ["nodejs_compat"]
 # (requiere eliannys.com gestionado en Cloudflare; custom_domain crea DNS + cert)
 routes = [{ pattern = "chat.eliannys.com", custom_domain = true }]
 
-# prompts como módulos de texto (no hay filesystem en Workers)
-rules = [{ type = "Text", globs = ["prompts/**/*.md"] }]
-
 [[d1_databases]]
 binding = "DB"
 database_name = "eliannys-wa-agent"
@@ -21,3 +18,9 @@ LLM_PROVIDER = "deepseek"
 GRAPH_API_VERSION = "v26.0"
 SHOP_API_BASE_URL = "https://eliannys.com/api/v1"
 USE_D1 = "1"
+
+# prompts como módulos de texto (no hay filesystem en Workers)
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true

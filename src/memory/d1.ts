@@ -1,16 +1,13 @@
-import { config } from "../settings/config.js";
 import type { D1Database } from "./d1-saver.js";
 
-let dbPromise: Promise<D1Database | null> | null = null;
+// El binding D1 se inyecta desde el entrypoint: main.ts (dev, vía getPlatformProxy)
+// o worker.ts (Workers, vía env.DB). Así d1.ts no depende de wrangler y no se bundlea en el Worker.
+let injected: D1Database | null = null;
 
-async function resolveDB(): Promise<D1Database | null> {
-  if (!config.memory.useD1) return null;
-  const { getPlatformProxy } = await import("wrangler");
-  const proxy = await getPlatformProxy();
-  const db = (proxy.env as Record<string, unknown>).DB as D1Database | undefined;
-  return db ?? null;
+export function setD1Binding(db: unknown): void {
+  injected = (db as D1Database) ?? null;
 }
 
 export function getDB(): Promise<D1Database | null> {
-  return (dbPromise ??= resolveDB());
+  return Promise.resolve(injected);
 }

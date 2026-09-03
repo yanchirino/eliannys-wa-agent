@@ -41,9 +41,14 @@ app.post("/webhook", async (c) => {
     console.log(`wa webhook: type=${firstType} id=${inbound.messageId} → duplicate`);
   } else {
     console.log(`wa webhook: type=${firstType} from=${inbound.from} text="${inbound.text}" → handling`);
-    handleInbound(inbound).catch((err) =>
+    const task = handleInbound(inbound).catch((err) =>
       console.error("whatsapp handler:", err instanceof Error ? err.message : String(err)),
     );
+    try {
+      c.executionCtx.waitUntil(task);
+    } catch {
+      // Node local: sin executionCtx, la tarea ya corre en background
+    }
   }
   return c.text("EVENT_RECEIVED", 200);
 });

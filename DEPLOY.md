@@ -32,12 +32,12 @@ rules = [{ type = "Text", globs = ["prompts/**/*.md"] }]
 [[d1_databases]]
 binding = "DB"
 database_name = "eliannys-wa-agent"
-database_id = "<D1_DATABASE_ID>"
+database_id = "b6b6d8a9-ddc4-4dc5-9487-8987e0afd297"
 migrations_dir = "migrations"
 
 [vars]
 LLM_PROVIDER = "deepseek"
-GRAPH_API_VERSION = "v21.0"
+GRAPH_API_VERSION = "v26.0"
 SHOP_API_BASE_URL = "https://eliannys.com/api/v1"
 USE_D1 = "1"
 ```
