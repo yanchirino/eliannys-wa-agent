@@ -1,7 +1,8 @@
 export type OutMessage =
   | { type: "text"; text: string }
   | { type: "product_card"; imageUrl: string; title: string; subtitle?: string; url: string; button: string }
-  | { type: "buttons"; text: string; buttons: { id: string; title: string }[] };
+  | { type: "buttons"; text: string; buttons: { id: string; title: string }[] }
+  | { type: "link"; text: string; url: string; button: string };
 
 const FALLBACK: OutMessage = {
   type: "text",
@@ -11,6 +12,7 @@ const FALLBACK: OutMessage = {
 function hasContent(m: OutMessage): boolean {
   if (m.type === "text") return Boolean(m.text?.trim());
   if (m.type === "product_card") return Boolean(m.url && m.title);
+  if (m.type === "link") return Boolean(m.url && m.text?.trim());
   return Boolean(m.text?.trim() && m.buttons?.length);
 }
 
@@ -30,6 +32,8 @@ export function coerceOutMessages(raw: unknown): OutMessage[] {
         url: o.url,
         button: String(o.button ?? "Ver"),
       });
+    } else if (o.type === "link" && typeof o.url === "string" && typeof o.text === "string") {
+      out.push({ type: "link", text: o.text, url: o.url, button: String(o.button ?? "Ver") });
     } else if (o.type === "buttons" && typeof o.text === "string" && Array.isArray(o.buttons)) {
       const buttons = o.buttons
         .slice(0, 3)
@@ -60,5 +64,6 @@ export function slugFromUrl(url: string): string | null {
 export function outToText(m: OutMessage): string {
   if (m.type === "text") return m.text;
   if (m.type === "product_card") return `${m.title}${m.subtitle ? ` — ${m.subtitle}` : ""}\n${m.url}`;
+  if (m.type === "link") return `${m.text}\n${m.url}`;
   return `${m.text} [${m.buttons.map((b) => b.title).join(" / ")}]`;
 }

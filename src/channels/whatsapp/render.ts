@@ -29,6 +29,18 @@ export function renderMessage(to: string, m: OutMessage): Record<string, unknown
     };
   }
 
+  if (m.type === "link") {
+    return {
+      ...base,
+      type: "interactive",
+      interactive: {
+        type: "cta_url",
+        body: { text: m.text },
+        action: { name: "cta_url", parameters: { display_text: m.button, url: m.url } },
+      },
+    };
+  }
+
   return {
     ...base,
     type: "interactive",

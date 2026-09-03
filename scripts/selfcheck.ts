@@ -7,7 +7,7 @@ import { isTransient } from "../src/llm/query-engine.js";
 import { registerTool, tools } from "../src/tools/registry.js";
 import { executeToolCall } from "../src/tools/execute.js";
 import { buildProductsQuery, copToCents } from "../src/products/client.js";
-import { formatPrice } from "../src/products/format.js";
+import { formatPrice, formatProduct } from "../src/products/format.js";
 import { getCollectionsSync } from "../src/products/collections.js";
 import { renderMessage, toWaImageUrl } from "../src/channels/whatsapp/render.js";
 import { verifySignature, seenBefore } from "../src/channels/whatsapp/webhook.js";
@@ -75,6 +75,21 @@ const btns = renderMessage("57300", {
   ],
 }) as { interactive: { action: { buttons: unknown[] } } };
 assert.equal(btns.interactive.action.buttons.length, 3);
+
+const linkMsg = renderMessage("57300", { type: "link", text: "mira", url: "http://x", button: "Ver" }) as {
+  interactive: { type: string; action: { parameters: { url: string } } };
+};
+assert.equal(linkMsg.interactive.type, "cta_url");
+assert.equal(linkMsg.interactive.action.parameters.url, "http://x");
+
+assert.match(
+  formatProduct({ name: "M", slug: "m", price_cents: 3190000, stock: 2, storable: true, url: "u" } as never),
+  /últimas unidades/,
+);
+assert.doesNotMatch(
+  formatProduct({ name: "M", slug: "m", price_cents: 3190000, stock: 0, made_to_order: true, url: "u" } as never),
+  /bajo pedido|stock:/,
+);
 
 assert.equal(verifySignature("body", undefined), false);
 assert.equal(seenBefore("dedupe-1"), false);

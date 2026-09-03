@@ -8,11 +8,13 @@ export function formatPrice(cents: number): string {
 
 export function formatProduct(p: Product): string {
   const price = p.sale_price_cents != null ? formatPrice(p.sale_price_cents) : formatPrice(p.price_cents);
-  const availability =
-    p.stock > 0
-      ? `stock: ${p.stock}`
-      : p.made_to_order
-        ? `bajo pedido${p.production_days ? ` (~${p.production_days} días)` : ""}`
-        : "agotado";
-  return `- ${p.name} (slug: ${p.slug}) — ${price} — ${availability}\n  url: ${p.url}\n  img: ${p.image_url ?? ""}`;
+  // Solo se menciona disponibilidad si es artículo con stock real: agotado, o "últimas unidades" (<3).
+  // Los fabricados (made_to_order) no llevan nota; nunca se dice "bajo pedido" ni cantidades exactas.
+  let availability = "";
+  if (p.storable) {
+    if (p.stock <= 0) availability = "agotado";
+    else if (p.stock < 3) availability = "últimas unidades";
+  }
+  const av = availability ? ` — ${availability}` : "";
+  return `- ${p.name} (slug: ${p.slug}) — ${price}${av}\n  url: ${p.url}\n  img: ${p.image_url ?? ""}`;
 }

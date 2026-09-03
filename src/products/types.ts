@@ -9,6 +9,7 @@ export interface Product {
   stock: number;
   production_days?: number;
   made_to_order?: boolean;
+  storable?: boolean;
   free_shipping?: boolean;
   url: string;
   image_url?: string;
