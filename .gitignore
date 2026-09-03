@@ -1,0 +1,15 @@
+node_modules/
+.env
+.dev.vars
+dist/
+*.log
+.wrangler/
+
+# IA / agentes
+.claude/
+.codex/
+.cursor/
+openspec/
+CLAUDE.md
+AGENTS.md
+.aider*
