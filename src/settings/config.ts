@@ -26,7 +26,15 @@ const Env = z.object({
   AGENT_TOKEN: z.string().optional(),
 });
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+// En Workers no hay import.meta.url de archivo; el prompts.dir no se usa allí (prompts bundleados).
+function resolveRoot(): string {
+  try {
+    return join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+  } catch {
+    return ".";
+  }
+}
+const root = resolveRoot();
 
 const parsed = Env.safeParse(process.env);
 if (!parsed.success) {

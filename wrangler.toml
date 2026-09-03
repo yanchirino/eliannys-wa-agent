@@ -2,6 +2,7 @@ name = "eliannys-wa-agent"
 main = "src/worker.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 # webhook en dominio propio → https://chat.eliannys.com/webhook
 # (requiere eliannys.com gestionado en Cloudflare; custom_domain crea DNS + cert)
