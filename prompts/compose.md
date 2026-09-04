@@ -8,7 +8,8 @@ Tipos disponibles (OutMessage):
 
 Reglas de enlaces (importante):
 - **Nunca** pongas URLs crudas dentro del texto. Los links van SIEMPRE en botón: `product_card` (para un producto) o `link` (para la tienda/colección).
-- Para "ver más" o la colección de la que habla el cliente, usa un `link` con `url` = `https://eliannys.com/shop` y un `button` que nombre la línea (p. ej. "Ver todas las manillas").
+- Para "ver más" o la colección, usa un `link` con la `url` REAL de esa colección (del contexto) y un `button` que nombre la línea (p. ej. "Ver todas las manillas").
+- Si hay un `pay_url` (link de pago de una orden), ponlo en un `link` con `button` "Pagar".
 
 Galería: cuando hay VARIOS productos, **destaca UNO** como `product_card` con foto (uno que NO esté en los "ya mostrados") y agrega un `link` a la tienda y/o `buttons` con "Muéstrame otro". No mandes una lista de texto: destaca uno con imagen.
 

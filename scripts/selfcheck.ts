@@ -6,7 +6,7 @@ import { routeAfterDraft, routeAfterCritique } from "../src/agent/routing.js";
 import { isTransient } from "../src/llm/query-engine.js";
 import { registerTool, tools } from "../src/tools/registry.js";
 import { executeToolCall } from "../src/tools/execute.js";
-import { buildProductsQuery, copToCents } from "../src/products/client.js";
+import { buildProductsQuery, copToCents, buildOrderBody } from "../src/products/client.js";
 import { formatPrice, formatProduct } from "../src/products/format.js";
 import { getCollectionsSync } from "../src/products/collections.js";
 import { renderMessage, toWaImageUrl } from "../src/channels/whatsapp/render.js";
@@ -90,6 +90,12 @@ assert.doesNotMatch(
   formatProduct({ name: "M", slug: "m", price_cents: 3190000, stock: 0, made_to_order: true, url: "u" } as never),
   /bajo pedido|stock:/,
 );
+assert.match(
+  formatProduct({ name: "M", slug: "m", id: "pid1", price_cents: 1000, stock: 5, storable: true, url: "u" } as never),
+  /id: pid1/,
+);
+assert.deepEqual(buildOrderBody([{ product_id: "p", qty: 2 }]), { items: [{ product_id: "p", qty: 2 }] });
+assert.equal((buildOrderBody([{ product_id: "p", qty: 1 }], "a@b.com") as { email?: string }).email, "a@b.com");
 
 assert.equal(verifySignature("body", undefined), false);
 assert.equal(seenBefore("dedupe-1"), false);

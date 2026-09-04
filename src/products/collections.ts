@@ -3,15 +3,18 @@ import { config } from "../settings/config.js";
 export interface Collection {
   slug: string;
   name: string;
+  url: string;
+  image_url?: string;
 }
 
+const SHOP = "https://eliannys.com/shop";
 const FALLBACK: Collection[] = [
-  { slug: "earcuff", name: "Ear cuffs" },
-  { slug: "manillas", name: "Manillas" },
-  { slug: "candongas", name: "Candongas" },
-  { slug: "manillas-hombres", name: "Hombres" },
-  { slug: "collares", name: "Collares" },
-  { slug: "manillas-parejas-amistad", name: "Amor y amistad" },
+  { slug: "earcuff", name: "Ear cuffs", url: SHOP },
+  { slug: "manillas", name: "Manillas", url: SHOP },
+  { slug: "candongas", name: "Candongas", url: SHOP },
+  { slug: "manillas-hombres", name: "Hombres", url: SHOP },
+  { slug: "collares", name: "Collares", url: SHOP },
+  { slug: "manillas-parejas-amistad", name: "Amor y amistad", url: SHOP },
 ];
 
 let cache: Collection[] | null = null;
@@ -34,7 +37,13 @@ export async function warmCollections(): Promise<void> {
     const cols = (Array.isArray(arr) ? arr : [])
       .map((c) => {
         const o = c as Record<string, unknown>;
-        return { slug: String(o.slug ?? o.id ?? ""), name: String(o.name ?? o.slug ?? "") };
+        const slug = String(o.slug ?? o.id ?? "");
+        return {
+          slug,
+          name: String(o.name ?? o.slug ?? ""),
+          url: String(o.url ?? SHOP),
+          image_url: o.image_url ? String(o.image_url) : undefined,
+        };
       })
       .filter((c) => c.slug);
     if (cols.length) cache = cols;

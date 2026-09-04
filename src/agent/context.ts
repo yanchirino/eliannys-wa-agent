@@ -16,9 +16,9 @@ export function commercialSystem(): SystemMessage {
   const parts = [loadPrompt("system")];
   if (config.shop.api.key) {
     const cols = getCollectionsSync()
-      .map((c) => `${c.slug} — ${c.name}`)
-      .join("; ");
-    parts.push(`# Colecciones válidas (usa el slug EXACTO en el filtro collection)\n${cols}`);
+      .map((c) => `${c.name} (slug: ${c.slug}) → ${c.url}`)
+      .join("\n");
+    parts.push(`# Colecciones (slug para el filtro collection; url = link real de la colección)\n${cols}`);
   }
   const company = loadCompanyInfo();
   if (company) parts.push(`# Info de empresa (políticas/FAQ; NO productos)\n${company}`);

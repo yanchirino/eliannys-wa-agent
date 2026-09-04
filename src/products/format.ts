@@ -16,5 +16,5 @@ export function formatProduct(p: Product): string {
     else if (p.stock < 3) availability = "últimas unidades";
   }
   const av = availability ? ` — ${availability}` : "";
-  return `- ${p.name} (slug: ${p.slug}) — ${price}${av}\n  url: ${p.url}\n  img: ${p.image_url ?? ""}`;
+  return `- ${p.name} (id: ${p.id}, slug: ${p.slug}) — ${price}${av}\n  url: ${p.url}\n  img: ${p.image_url ?? ""}`;
 }

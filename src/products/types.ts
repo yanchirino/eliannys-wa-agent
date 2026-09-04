@@ -35,3 +35,17 @@ export interface ProductSearchResult {
   next_cursor?: string | null;
   has_more?: boolean;
 }
+
+export interface OrderItem {
+  product_id: string;
+  qty: number;
+}
+
+export interface OrderResult {
+  id?: string;
+  status?: string;
+  subtotal_cents?: number;
+  total_cents?: number;
+  currency?: string;
+  pay_url: string;
+}

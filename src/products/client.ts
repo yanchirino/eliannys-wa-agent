@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { config } from "../settings/config.js";
-import type { Product, ProductSearchParams, ProductSearchResult } from "./types.js";
+import type { OrderItem, OrderResult, Product, ProductSearchParams, ProductSearchResult } from "./types.js";
 
 const TIMEOUT_MS = 8000;
 
@@ -46,6 +47,34 @@ export async function searchProducts(params: ProductSearchParams): Promise<Produ
     next_cursor: (b.next_cursor as string | null) ?? null,
     has_more: Boolean(b.has_more),
   };
+}
+
+export function buildOrderBody(items: OrderItem[], email?: string): Record<string, unknown> {
+  return { items, ...(email ? { email } : {}) };
+}
+
+export async function createOrder(items: OrderItem[], email?: string): Promise<OrderResult> {
+  const { baseUrl, key } = config.shop.api;
+  if (!key) throw new Error("SHOP_API_KEY not configured");
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${baseUrl}/orders`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        accept: "application/json",
+        "Idempotency-Key": randomUUID(),
+      },
+      body: JSON.stringify(buildOrderBody(items, email)),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`orders API ${res.status}`);
+    return (await res.json()) as OrderResult;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function getProduct(idOrSlug: string): Promise<Product | null> {
