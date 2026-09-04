@@ -6,7 +6,7 @@ import { tools } from "../tools/registry.js";
 import { executeToolCall } from "../tools/execute.js";
 import { extractJson } from "../shared/json.js";
 import { commercialSystem, textOf, normalizeConversion } from "./context.js";
-import { coerceOutMessages, sanitizeMessages, outToText, slugFromUrl } from "./messages.js";
+import { coerceOutMessages, sanitizeMessages, outToText, slugFromUrl, productIdBySlug } from "./messages.js";
 
 export async function analyze(state: AgentState) {
   const convo = [...(state.messages ?? []), new HumanMessage(state.input)];
@@ -48,10 +48,14 @@ export async function generate(state: AgentState) {
   const fixes = state.fixes ?? [];
   const toolResults = state.toolResults ?? [];
   const shown = state.shownSlugs ?? [];
+  const shownP = state.shownProducts ?? [];
   const guidance = [
     state.customerName ? `Cliente: ${state.customerName} (tutéale por su nombre con naturalidad).` : "",
     state.activeLine ? `Línea/tema activo en la conversación: ${state.activeLine}. Resuelve "denuevo/esa/la" contra esto.` : "",
     shown.length ? `Productos YA mostrados (no los repitas; si pide "otro", muestra uno distinto): ${shown.join(", ")}.` : "",
+    shownP.length
+      ? `Piezas mostradas y su referencia (si pide "ese/uno de esos/quiero ese", resuélvelo a esta pieza y ordénala con createOrder por su id, sin re-buscar): ${shownP.map((p) => `${p.name}${p.id ? ` (id: ${p.id})` : ` (slug: ${p.slug})`}`).join("; ")}.`
+      : "",
     state.plan ? `Análisis:\n${state.plan}` : "",
     fixes.length ? `Corrige estos puntos de tu versión anterior:\n- ${fixes.join("\n- ")}` : "",
     toolResults.length ? `Resultados de herramientas:\n${toolResults.join("\n")}` : "",
@@ -120,6 +124,14 @@ export async function compose(state: AgentState) {
 export function respond(state: AgentState) {
   const out = sanitizeMessages(state.composed ?? []);
   const joined = out.map(outToText).join("\n\n");
-  const newSlugs = out.flatMap((m) => (m.type === "product_card" ? [slugFromUrl(m.url)] : [])).filter(Boolean) as string[];
-  return { outMessages: out, messages: [new AIMessage(joined)], shownSlugs: newSlugs };
+  const idBySlug = productIdBySlug(state.toolResults ?? []);
+  const shownProducts = out.flatMap((m) => {
+    if (m.type !== "product_card") return [];
+    const slug = slugFromUrl(m.url);
+    if (!slug) return [];
+    const id = idBySlug.get(slug);
+    return [{ slug, name: m.title, ...(id ? { id } : {}) }];
+  });
+  const newSlugs = shownProducts.map((p) => p.slug);
+  return { outMessages: out, messages: [new AIMessage(joined)], shownSlugs: newSlugs, shownProducts };
 }

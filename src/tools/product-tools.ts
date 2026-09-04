@@ -13,7 +13,6 @@ const searchSchema = z.object({
   collection: z.string().optional(),
   min_price: z.number().optional(),
   max_price: z.number().optional(),
-  in_stock: z.boolean().optional(),
   sort: z.string().optional(),
   limit: z.number().min(1).max(20).optional(),
 });

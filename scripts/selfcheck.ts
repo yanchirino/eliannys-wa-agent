@@ -11,7 +11,8 @@ import { formatPrice, formatProduct } from "../src/products/format.js";
 import { getCollectionsSync } from "../src/products/collections.js";
 import { renderMessage, toWaImageUrl } from "../src/channels/whatsapp/render.js";
 import { verifySignature, seenBefore } from "../src/channels/whatsapp/webhook.js";
-import { coerceOutMessages, sanitizeMessages, slugFromUrl } from "../src/agent/messages.js";
+import { coerceOutMessages, sanitizeMessages, slugFromUrl, productIdBySlug } from "../src/agent/messages.js";
+import type { OutMessage } from "../src/agent/messages.js";
 import { logMessage, listConversations } from "../src/log/messages-log.js";
 
 assert.deepEqual(extractJson('{"ready":true,"fixes":[]}'), { ready: true, fixes: [] });
@@ -47,7 +48,7 @@ assert.equal(slugFromUrl("https://eliannys.com/product/manilla-metal"), "manilla
 assert.equal(slugFromUrl("https://eliannys.com/shop"), null);
 
 assert.equal(buildProductsQuery({}), "");
-assert.equal(buildProductsQuery({ q: "manilla", in_stock: true }), "?q=manilla&in_stock=true");
+assert.equal(buildProductsQuery({ q: "manilla", collection: "manillas" }), "?q=manilla&collection=manillas");
 assert.equal(buildProductsQuery({ q: "", limit: 5 }), "?limit=5");
 assert.match(formatPrice(100000), /\$.*COP/);
 assert.equal(copToCents(50000), 5000000);
@@ -105,6 +106,25 @@ assert.equal(toWaImageUrl("http://x/a.jpg"), "http://x/a.jpg");
 assert.match(toWaImageUrl("http://x/a.webp"), /images\.weserv\.nl.*output=jpg/);
 assert.equal(coerceOutMessages([{ type: "text", text: "hi" }]).length, 1);
 assert.equal(sanitizeMessages([]).length, 1);
+
+const gallery = Array.from({ length: 5 }, (_, i) => ({
+  type: "product_card",
+  imageUrl: "i",
+  title: `P${i}`,
+  url: `http://x/product/p${i}`,
+  button: "Ver",
+})) as OutMessage[];
+assert.equal(sanitizeMessages(gallery).filter((m) => m.type === "product_card").length, 4);
+const mixed = [
+  { type: "text", text: "a" },
+  { type: "text", text: "b" },
+  { type: "text", text: "c" },
+  { type: "product_card", imageUrl: "i", title: "P", url: "http://x/product/p", button: "Ver" },
+] as OutMessage[];
+const sm = sanitizeMessages(mixed);
+assert.equal(sm.filter((m) => m.type === "text").length, 2);
+assert.equal(sm.filter((m) => m.type === "product_card").length, 1);
+assert.equal(productIdBySlug(["- M (id: pid1, slug: manilla-metal) — $"]).get("manilla-metal"), "pid1");
 
 await logMessage("t", "in", "hola", "text");
 assert.deepEqual(await listConversations(), []);

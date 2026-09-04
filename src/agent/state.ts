@@ -8,6 +8,12 @@ export interface Conversion {
   purchaseIntent: boolean;
 }
 
+export interface ShownProduct {
+  id?: string;
+  name: string;
+  slug: string;
+}
+
 export const StateAnnotation = Annotation.Root({
   input: Annotation<string>,
   messages: Annotation<BaseMessage[]>({
@@ -18,6 +24,14 @@ export const StateAnnotation = Annotation.Root({
   activeLine: Annotation<string>,
   shownSlugs: Annotation<string[]>({
     reducer: (a, b) => [...new Set([...a, ...b])],
+    default: () => [],
+  }),
+  shownProducts: Annotation<ShownProduct[]>({
+    reducer: (a, b) => {
+      const map = new Map(a.map((p) => [p.slug, p]));
+      for (const p of b) map.set(p.slug, p);
+      return [...map.values()].slice(-8);
+    },
     default: () => [],
   }),
   plan: Annotation<string>,

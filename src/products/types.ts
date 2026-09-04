@@ -23,7 +23,6 @@ export interface ProductSearchParams {
   tag?: string;
   min_price?: number;
   max_price?: number;
-  in_stock?: boolean;
   featured?: boolean;
   sort?: string;
   limit?: number;

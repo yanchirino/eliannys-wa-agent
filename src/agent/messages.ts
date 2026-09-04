@@ -48,12 +48,30 @@ export function coerceOutMessages(raw: unknown): OutMessage[] {
   return out;
 }
 
+const GALLERY_MAX = 4;
+
+// Tope separado: hasta 2 mensajes conversacionales + una galería acotada de fichas.
 export function sanitizeMessages(msgs: OutMessage[]): OutMessage[] {
-  const cleaned = msgs
-    .filter(hasContent)
-    .slice(0, 2)
-    .map((m) => (m.type === "buttons" ? { ...m, buttons: m.buttons.slice(0, 3) } : m));
+  let convo = 0;
+  let cards = 0;
+  const cleaned: OutMessage[] = [];
+  for (const m of msgs.filter(hasContent)) {
+    if (m.type === "product_card") {
+      if (cards++ >= GALLERY_MAX) continue;
+      cleaned.push(m);
+    } else {
+      if (convo++ >= 2) continue;
+      cleaned.push(m.type === "buttons" ? { ...m, buttons: m.buttons.slice(0, 3) } : m);
+    }
+  }
   return cleaned.length ? cleaned : [FALLBACK];
+}
+
+export function productIdBySlug(toolResults: string[]): Map<string, string> {
+  const map = new Map<string, string>();
+  const re = /id:\s*([^,\s]+),\s*slug:\s*([^)\s]+)/g;
+  for (const line of toolResults) for (const m of line.matchAll(re)) map.set(m[2], m[1]);
+  return map;
 }
 
 export function slugFromUrl(url: string): string | null {
