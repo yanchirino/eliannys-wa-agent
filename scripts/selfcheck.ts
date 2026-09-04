@@ -12,6 +12,7 @@ import { getCollectionsSync } from "../src/products/collections.js";
 import { renderMessage, toWaImageUrl } from "../src/channels/whatsapp/render.js";
 import { verifySignature, seenBefore } from "../src/channels/whatsapp/webhook.js";
 import { coerceOutMessages, sanitizeMessages, slugFromUrl } from "../src/agent/messages.js";
+import { logMessage, listConversations } from "../src/log/messages-log.js";
 
 assert.deepEqual(extractJson('{"ready":true,"fixes":[]}'), { ready: true, fixes: [] });
 assert.equal(extractJson<{ ok?: number }>('prefix {"ok":1} suffix')?.ok, 1);
@@ -104,5 +105,8 @@ assert.equal(toWaImageUrl("http://x/a.jpg"), "http://x/a.jpg");
 assert.match(toWaImageUrl("http://x/a.webp"), /images\.weserv\.nl.*output=jpg/);
 assert.equal(coerceOutMessages([{ type: "text", text: "hi" }]).length, 1);
 assert.equal(sanitizeMessages([]).length, 1);
+
+await logMessage("t", "in", "hola", "text");
+assert.deepEqual(await listConversations(), []);
 
 console.log("selfcheck ok");

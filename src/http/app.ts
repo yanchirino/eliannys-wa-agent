@@ -1,10 +1,19 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { invoke } from "../agent/index.js";
 import { config } from "../settings/config.js";
+import { outToText } from "../agent/messages.js";
 import { verifyChallenge, verifySignature, parseInbound, seenBefore, type Inbound } from "../channels/whatsapp/webhook.js";
 import { sendMessage, markReadAndType } from "../channels/whatsapp/client.js";
+import { logMessage, listConversations, getConversation } from "../log/messages-log.js";
 
 export const app = new Hono();
+
+function tokenMatches(c: Context): boolean {
+  if (!config.agentToken) return false;
+  const auth = c.req.header("authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  return token === config.agentToken;
+}
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
@@ -18,9 +27,13 @@ app.get("/webhook", (c) => {
 });
 
 async function handleInbound(inbound: Inbound): Promise<void> {
+  void logMessage(inbound.from, "in", inbound.text, "text");
   await markReadAndType(inbound.messageId);
   const { messages } = await invoke(inbound.text, inbound.from);
-  for (const m of messages) await sendMessage(inbound.from, m);
+  for (const m of messages) {
+    void logMessage(inbound.from, "out", outToText(m), m.type);
+    await sendMessage(inbound.from, m);
+  }
 }
 
 app.post("/webhook", async (c) => {
@@ -54,11 +67,7 @@ app.post("/webhook", async (c) => {
 });
 
 app.post("/message", async (c) => {
-  if (config.agentToken) {
-    const auth = c.req.header("authorization") ?? "";
-    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (token !== config.agentToken) return c.json({ error: "unauthorized" }, 401);
-  }
+  if (config.agentToken && !tokenMatches(c)) return c.json({ error: "unauthorized" }, 401);
 
   let body: unknown;
   try {
@@ -72,8 +81,22 @@ app.post("/message", async (c) => {
   const threadId = typeof b?.thread_id === "string" && b.thread_id.trim() ? b.thread_id.trim() : undefined;
 
   try {
-    return c.json(await invoke(input, threadId));
+    const tid = threadId ?? "web";
+    void logMessage(tid, "in", input, "text");
+    const result = await invoke(input, threadId);
+    for (const m of result.messages) void logMessage(tid, "out", outToText(m), m.type);
+    return c.json(result);
   } catch (err) {
     return c.json({ error: err instanceof Error ? err.message : String(err) }, 500);
   }
+});
+
+app.get("/conversations", async (c) => {
+  if (!tokenMatches(c)) return c.json({ error: "unauthorized" }, 401);
+  return c.json(await listConversations());
+});
+
+app.get("/conversations/:threadId", async (c) => {
+  if (!tokenMatches(c)) return c.json({ error: "unauthorized" }, 401);
+  return c.json(await getConversation(c.req.param("threadId")));
 });
