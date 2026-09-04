@@ -71,7 +71,8 @@ export async function createOrder(items: OrderItem[], email?: string): Promise<O
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`orders API ${res.status}`);
-    return (await res.json()) as OrderResult;
+    const body = (await res.json()) as { data?: OrderResult };
+    return (body?.data ?? body) as OrderResult;
   } finally {
     clearTimeout(timer);
   }
